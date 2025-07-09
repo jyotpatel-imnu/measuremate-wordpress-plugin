@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function tggr_gtm_purchase($order_id)
+function measuremate_gtm_purchase($order_id)
 {
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
 
     if (isset($options['purchase']) && $options['purchase']) {
         $order = wc_get_order($order_id);
@@ -12,11 +12,11 @@ function tggr_gtm_purchase($order_id)
 
         foreach ($items as $item) {
             $product = $item->get_product();
-            $products[] = tggr_format_item($product->get_id(), $item->get_quantity());
+            $products[] = measuremate_format_item($product->get_id(), $item->get_quantity());
         }
 
-        $hashed_email = tggr_hash_email($order->get_billing_email());
-        $hashed_phone = tggr_hash_email($order->get_billing_phone());
+        $hashed_email = measuremate_hash_email($order->get_billing_email());
+        $hashed_phone = measuremate_hash_email($order->get_billing_phone());
 ?>
         <script>
             window.dataLayer = window.dataLayer || [];
@@ -50,5 +50,5 @@ function tggr_gtm_purchase($order_id)
 <?php
     }
 }
-add_action('woocommerce_thankyou', 'tggr_gtm_purchase');
+add_action('woocommerce_thankyou', 'measuremate_gtm_purchase');
 ?>

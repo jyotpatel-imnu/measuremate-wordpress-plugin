@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function tggr_refund($order_id)
+function measuremate_refund($order_id)
 {
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
     $order = wc_get_order($order_id);
 
     $cart = WC()->cart;
@@ -25,7 +25,7 @@ function tggr_refund($order_id)
         // Voeg hier aanvullende productcategorieën toe indien nodig
         // Voorbeeld: $item_category2 = 'Adult';
 
-        $items[] = tggr_format_item($product->get_id(), $item->get_quantity());
+        $items[] = measuremate_format_item($product->get_id(), $item->get_quantity());
     }
 
 ?>
@@ -46,5 +46,5 @@ function tggr_refund($order_id)
 <?php
 }
 
-add_action('woocommerce_order_status_refunded', 'tggr_refund');
+add_action('woocommerce_order_status_refunded', 'measuremate_refund');
 ?>

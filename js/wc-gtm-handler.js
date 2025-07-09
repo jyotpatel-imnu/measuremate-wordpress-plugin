@@ -1,25 +1,27 @@
-jQuery(document).ready(function($) {
-    console.log('loaded!')
-    $(document.body).on('item_remove_clicked', function(event, fragments, cart_hash, $button) {
-        console.log('removing!')
+jQuery(document).ready(function ($) {
+  console.log("loaded!");
+  $(document.body).on(
+    "item_remove_clicked",
+    function (event, fragments, cart_hash, $button) {
+      console.log("removing!");
 
-        // Get the product data
-        var removedProduct = tggr_vars.removedProduct;
-        console.log(removedProduct)
+      // Get the product data
+      var removedProduct = measuremate_vars.removedProduct;
+      console.log(removedProduct);
 
-
-        if (removedProduct) {
-            window.dataLayer = window.dataLayer || [];
-            dataLayer.push({
-                'event': 'remove_from_cart',
-                'item': {
-                    'id': removedProduct.id,
-                    'name': removedProduct.name,
-                    'category': removedProduct.category,
-                    'quantity': removedProduct.quantity,
-                    'price': removedProduct.price
-                }
-            });
-        }
-    });
+      if (removedProduct) {
+        window.dataLayer = window.dataLayer || [];
+        dataLayer.push({
+          event: "remove_from_cart",
+          item: {
+            id: removedProduct.id,
+            name: removedProduct.name,
+            category: removedProduct.category,
+            quantity: removedProduct.quantity,
+            price: removedProduct.price,
+          },
+        });
+      }
+    }
+  );
 });

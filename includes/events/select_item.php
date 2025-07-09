@@ -1,9 +1,9 @@
 <?php
 if (! defined('ABSPATH')) exit;
 
-function tggr_select_item_event()
+function measuremate_select_item_event()
 {
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
     if (!isset($options['select_item']) || !$options['select_item']) {
         return;
     }
@@ -17,7 +17,7 @@ function tggr_select_item_event()
 
     $current_user = wp_get_current_user();
     $email = $current_user->exists() ? $current_user->user_email : '';
-    $hashed_email = $email ? tggr_hash_email($email) : '';
+    $hashed_email = $email ? measuremate_hash_email($email) : '';
 
     $categories = get_the_terms($product->get_id(), 'product_cat');
     $category_name = !empty($categories) ? $categories[0]->name : '';
@@ -38,7 +38,7 @@ function tggr_select_item_event()
         $item_list_name = 'Shop Page';
     }
 
-    $item = tggr_format_item($product->get_id());
+    $item = measuremate_format_item($product->get_id());
 
     $event_data = array(
         'event' => 'select_item',
@@ -54,13 +54,13 @@ function tggr_select_item_event()
     );
 
     $cookie_value = base64_encode(wp_json_encode($event_data));
-    setcookie('tggr_select_item_data', $cookie_value, time() + 300, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), false);
+    setcookie('measuremate_select_item_data', $cookie_value, time() + 300, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), false);
 }
-add_action('woocommerce_before_single_product', 'tggr_select_item_event');
+add_action('woocommerce_before_single_product', 'measuremate_select_item_event');
 
-function tggr_print_select_item_script()
+function measuremate_print_select_item_script()
 {
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
     if (!isset($options['select_item']) || !$options['select_item']) {
         return;
     }
@@ -68,14 +68,14 @@ function tggr_print_select_item_script()
     <script>
         jQuery(document).ready(function($) {
             function pushSelectItemData() {
-                var cookieValue = document.cookie.split('; ').find(row => row.startsWith('tggr_select_item_data='));
+                var cookieValue = document.cookie.split('; ').find(row => row.startsWith('measuremate_select_item_data='));
                 if (cookieValue) {
                     try {
                         var data = JSON.parse(atob(decodeURIComponent(cookieValue.split('=')[1])));
                         window.dataLayer = window.dataLayer || [];
                         window.dataLayer.push(data);
                         // Delete cookie after pushing data
-                        document.cookie = "tggr_select_item_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=<?php echo COOKIEPATH; ?>; domain=<?php echo COOKIE_DOMAIN; ?>";
+                        document.cookie = "measuremate_select_item_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=<?php echo esc_js(COOKIEPATH); ?>; domain=<?php echo esc_js(COOKIE_DOMAIN); ?>";
                     } catch (e) {
                         console.error('Select item data error:', e);
                     }
@@ -93,5 +93,5 @@ function tggr_print_select_item_script()
     </script>
     <?php
 }
-add_action('wp_footer', 'tggr_print_select_item_script');
+add_action('wp_footer', 'measuremate_print_select_item_script');
 ?>

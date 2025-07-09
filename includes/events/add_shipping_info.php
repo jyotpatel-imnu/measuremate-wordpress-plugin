@@ -1,9 +1,9 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-function tggr_add_shipping_info()
+function measuremate_add_shipping_info()
 {
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
     $current_user = wp_get_current_user();
     $hashed_email = '';
     if ($current_user->exists()) {
@@ -15,7 +15,7 @@ function tggr_add_shipping_info()
     
     if ($cart) {
         $total_value = 0;
-        $items = tggr_format_cart_items($cart);
+        $items = measuremate_format_cart_items($cart);
 
 
         foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
@@ -47,5 +47,5 @@ function tggr_add_shipping_info()
     }
 }
 
-add_action('woocommerce_after_checkout_shipping_form', 'tggr_add_shipping_info');
+add_action('woocommerce_after_checkout_shipping_form', 'measuremate_add_shipping_info');
 ?>

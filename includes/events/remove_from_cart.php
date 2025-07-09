@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function tggr_remove_from_cart_event($cart_item_key, $instance)
+function measuremate_remove_from_cart_event($cart_item_key, $instance)
 {
     // Check if instance is valid and has get_cart_item method
     if (!is_object($instance) || !method_exists($instance, 'get_cart_item')) {
@@ -27,9 +27,9 @@ function tggr_remove_from_cart_event($cart_item_key, $instance)
         return;
     }
 
-    $item = tggr_format_item($product->get_id(), $cart_item['quantity']);
+    $item = measuremate_format_item($product->get_id(), $cart_item['quantity']);
 
-    $tggr_event_data = array(
+    $measuremate_event_data = array(
         'event'     => 'remove_from_cart',
         'ecommerce' => array(
             'currency' => get_woocommerce_currency(),
@@ -44,19 +44,19 @@ function tggr_remove_from_cart_event($cart_item_key, $instance)
     );
 
     // Enqueue the data as an inline script
-    wp_register_script('ga4-remove-from-cart', false);
+    wp_register_script('ga4-begin-checkout', false, array(), '1.0.0', true);
     wp_enqueue_script('ga4-remove-from-cart');
-    wp_add_inline_script('ga4-remove-from-cart', 'window.ga4RemoveFromCartData = ' . wp_json_encode($tggr_event_data) . ';', 'before');
+    wp_add_inline_script('ga4-remove-from-cart', 'window.ga4RemoveFromCartData = ' . wp_json_encode($measuremate_event_data) . ';', 'before');
 }
-add_action('woocommerce_cart_item_removed', 'tggr_remove_from_cart_event', 10, 2);
+add_action('woocommerce_cart_item_removed', 'measuremate_remove_from_cart_event', 10, 2);
 
-function tggr_print_remove_from_cart_script()
+function measuremate_print_remove_from_cart_script()
 {
     if (!wp_script_is('ga4-remove-from-cart', 'enqueued')) {
         return;
     }
 
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
     if (isset($options['remove_from_cart']) && $options['remove_from_cart']) {
         ?>
         <script type="text/javascript">
@@ -70,9 +70,9 @@ function tggr_print_remove_from_cart_script()
         <?php
     }
 }
-add_action('wp_footer', 'tggr_print_remove_from_cart_script');
+add_action('wp_footer', 'measuremate_print_remove_from_cart_script');
 
-function tggr_ajax_remove_from_cart_script()
+function measuremate_ajax_remove_from_cart_script()
 {
     $current_user = wp_get_current_user();
     $hashed_email = '';
@@ -81,7 +81,7 @@ function tggr_ajax_remove_from_cart_script()
         $hashed_email = hash('sha256', $current_user->user_email);
         $email = $current_user->user_email;
     }
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
     if (isset($options['remove_from_cart']) && $options['remove_from_cart']) {
         ?>
         <script type="text/javascript">
@@ -104,7 +104,8 @@ function tggr_ajax_remove_from_cart_script()
                     type: 'POST',
                     data: {
                         action: 'get_product_details', // The WordPress action
-                        product_id: product_id
+                        product_id: product_id,
+                        nonce: '<?php echo esc_js(wp_create_nonce('get_product_details_nonce')); ?>' // Add nonce for security
                     },
                     success: function(response) {
                         if (response && response.success) {
@@ -135,10 +136,15 @@ function tggr_ajax_remove_from_cart_script()
         <?php
     }
 }
-add_action('wp_footer', 'tggr_ajax_remove_from_cart_script');
+add_action('wp_footer', 'measuremate_ajax_remove_from_cart_script');
 
-function tggr_get_product_details_callback()
+function measuremate_get_product_details_callback()
 {
+    // Verify nonce for security
+    if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'get_product_details_nonce')) {
+        wp_send_json_error('Security check failed');
+    }
+
     // Validate and sanitize the product ID
     if (!isset($_POST['product_id']) || !is_numeric($_POST['product_id'])) {
         wp_send_json_error('Invalid product ID');
@@ -173,7 +179,7 @@ function tggr_get_product_details_callback()
         ))
     ));
 }
-add_action('wp_ajax_get_product_details', 'tggr_get_product_details_callback');
-add_action('wp_ajax_nopriv_get_product_details', 'tggr_get_product_details_callback');
+add_action('wp_ajax_get_product_details', 'measuremate_get_product_details_callback');
+add_action('wp_ajax_nopriv_get_product_details', 'measuremate_get_product_details_callback');
 
 ?>

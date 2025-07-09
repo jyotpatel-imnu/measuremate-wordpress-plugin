@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function tggr_add_payment_info()
+function measuremate_add_payment_info()
 {
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
 
     $current_user = wp_get_current_user();
     $hashed_email = '';
@@ -16,7 +16,7 @@ function tggr_add_payment_info()
         $cart = WC()->cart;
         if ($cart) {
             $total_value = 0;
-            $items = tggr_format_cart_items($cart);
+            $items = measuremate_format_cart_items($cart);
     
     
             foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
@@ -49,5 +49,5 @@ function tggr_add_payment_info()
     }
 }
 
-add_action('woocommerce_after_checkout_billing_form', 'tggr_add_payment_info');
+add_action('woocommerce_after_checkout_billing_form', 'measuremate_add_payment_info');
 ?>

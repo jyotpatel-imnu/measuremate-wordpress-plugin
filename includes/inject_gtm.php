@@ -2,21 +2,21 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 // All datalayer injections
-function tggr_inject_gtm_script()
+function measuremate_inject_gtm_script()
 {
-    $gtm_code = get_option('tggr_code', '');
+    $gtm_code = get_option('measuremate_code', '');
     
     if (empty($gtm_code)) {
         return;
     }
 
-    $gtm_options = get_option('tggr_options', array());
+    $gtm_options = get_option('measuremate_options', array());
 
     // Check if the option isn't an array or if it doesn't contain the expected key.
-    if (!is_array($gtm_options) || !isset($gtm_options['tggr_url_toggle']) || $gtm_options['tggr_url_toggle'] == '') {
+    if (!is_array($gtm_options) || !isset($gtm_options['measuremate_url_toggle']) || $gtm_options['measuremate_url_toggle'] == '') {
         $gtm_url = 'googletagmanager.com'; // Default value
     } else {
-        $gtm_url = $gtm_options['tggr_url_toggle'];
+        $gtm_url = $gtm_options['measuremate_url_toggle'];
     }
 
     if (!preg_match('/^https?:\/\//', $gtm_url)) {
@@ -34,43 +34,40 @@ function tggr_inject_gtm_script()
         $gtm_url = $gtm_url . '/gtm.js';
     }
 
-    //    if($gtm_url == 'on'){
-    //        $id = 'd6c41dc2-69f5-49d4-a510-cbe5cadad499';  // Fetch the ID from wherever you have it.
-    //        $bearer_token = '1|hUgtpWxPz17M0WC023NlLZhmM5EMGnaTKFsw70nr';  // Again, fetch this securely.
-    //        $data = fetch_container_data($id, $bearer_token);
-    echo "<!-- Server Side Tagging by TAGGRS -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    '" . esc_js($gtm_url) . "?$parameter='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','" . esc_js($gtm_code) . "');</script>
-    <!-- End Server Side Tagging by TAGGRS -->";
-    //    } else if (!empty($gtm_code) && !empty($gtm_url)) {
-    //        echo "<!-- Server Side Tagging by TAGGRS -->
-    //    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    //    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    //    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    //    'https://googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    //    })(window,document,'script','dataLayer','" . esc_js($gtm_code) . "');</script>
-    //    <!-- End Server Side Tagging by TAGGRS -->";
-    //    }
+    ?>
+    <script>
+    (function(w,d,s,l,i){
+        w[l]=w[l]||[];
+        w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+        var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),
+            dl=l!='dataLayer'?'&l='+l:'',
+            parameter = '<?php echo esc_js($parameter); ?>',
+            gtm_url = '<?php echo esc_url($gtm_url); ?>',
+            gtm_code = '<?php echo esc_js($gtm_code); ?>';
+        j.async=true;
+        j.src = gtm_url + '?' + parameter + '=' + gtm_code + dl;
+        f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','<?php echo esc_js($gtm_code); ?>');
+    </script>
+    <?php
 }
-add_action('wp_head', 'tggr_inject_gtm_script');
+add_action('wp_head', 'measuremate_inject_gtm_script');
 
 
-function tggr_inject_gtm_noscript()
+function measuremate_inject_gtm_noscript()
 {
-    $gtm_code = get_option('tggr_code', '');
+    $gtm_code = get_option('measuremate_code', '');
 
     if (empty($gtm_code)) {
         return;
     }
 
-    $gtm_options = get_option('tggr_options', array());
-    if (!is_array($gtm_options) || !isset($gtm_options['tggr_url_toggle']) || $gtm_options['tggr_url_toggle'] == '') {
+    $gtm_options = get_option('measuremate_options', array());
+    if (!is_array($gtm_options) || !isset($gtm_options['measuremate_url_toggle']) || $gtm_options['measuremate_url_toggle'] == '') {
         $gtm_url = 'googletagmanager.com'; // Default value
     } else {
-        $gtm_url = $gtm_options['tggr_url_toggle'];
+        $gtm_url = $gtm_options['measuremate_url_toggle'];
     }
 
     if (!preg_match('/^https?:\/\//', $gtm_url)) {
@@ -88,20 +85,12 @@ function tggr_inject_gtm_noscript()
         $gtm_url = $gtm_url . '/ns.html';
     }
 
-    //    if($gtm_url == 'on'){
-    //        $id = 'd6c41dc2-69f5-49d4-a510-cbe5cadad499';  // Fetch the ID from wherever you have it.
-    //        $bearer_token = '1|hUgtpWxPz17M0WC023NlLZhmM5EMGnaTKFsw70nr';  // Again, fetch this securely.
-    //        $data = fetch_container_data($id, $bearer_token);
-    echo  "<!-- Server Side Tagging by TAGGRS (noscript) -->
-    <noscript><iframe src='" . esc_js($gtm_url) . "?$parameter=" . esc_js($gtm_code) . "'
-                      height='0' width='0' style='display:none;visibility:hidden'></iframe></noscript>
-    <!-- End Server Side Tagging by TAGGRS (noscript) -->";
-    //    } else if (!empty($gtm_code) && !empty($gtm_url)) {
-    //        echo "<!-- Server Side Tagging by TAGGRS (noscript) -->
-    //    <noscript><iframe src='https://googletagmanager.com/ns.html?id=" . esc_js($gtm_code) . "'
-    //                      height='0' width='0' style='display:none;visibility:hidden'></iframe></noscript>
-    //    <!-- End Server Side Tagging by TAGGRS (noscript) -->";
-    //    }
+    ?>
+    <noscript>
+        <iframe src="<?php echo esc_url($gtm_url) . '?' . esc_attr($parameter) . '=' . esc_attr($gtm_code); ?>"
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <?php
 }
 // If your theme supports the 'wp_body_open' action (introduced in WP 5.2), you can use that.
-add_action('wp_body_open', 'tggr_inject_gtm_noscript');
+add_action('wp_body_open', 'measuremate_inject_gtm_noscript');

@@ -1,25 +1,25 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function tggr_hash_email($email)
+function measuremate_hash_email($email)
 {
     return hash('sha256', strtolower(trim($email)));
 }
 
-function tggr_format_cart_items($cart){
+function measuremate_format_cart_items($cart){
     $items = array();
 
     foreach($cart->cart_contents as $cart_item){
         $product_id = $cart_item['product_id'];
         $product_quantity = $cart_item['quantity'];
-        $item = tggr_format_item($product_id, $product_quantity);
+        $item = measuremate_format_item($product_id, $product_quantity);
         $items[] = $item;
     }
     
     return $items;
 }
 
-function tggr_format_item($product_id, $product_quantity = 1){
+function measuremate_format_item($product_id, $product_quantity = 1){
     $product = wc_get_product( $product_id );
 
     $product_name = $product->get_name();

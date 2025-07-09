@@ -1,14 +1,14 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function tggr_gtm_view_item()
+function measuremate_gtm_view_item()
 {
 
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
     $current_user = wp_get_current_user();
     $hashed_email = '';
     if ($current_user->exists()) {
-        $hashed_email = tggr_hash_email($current_user->user_email);
+        $hashed_email = measuremate_hash_email($current_user->user_email);
     }
     if (isset($options['view_item']) && $options['view_item']) {
         if (is_product()) {
@@ -18,7 +18,7 @@ function tggr_gtm_view_item()
                 $product = wc_get_product(get_the_ID());
             }
 
-            $item = tggr_format_item($product->get_id());
+            $item = measuremate_format_item($product->get_id());
 
             if ($product) {
 ?>
@@ -43,6 +43,6 @@ function tggr_gtm_view_item()
         }
     }
 }
-add_action('wp_footer', 'tggr_gtm_view_item');
+add_action('wp_footer', 'measuremate_gtm_view_item');
 
 ?>

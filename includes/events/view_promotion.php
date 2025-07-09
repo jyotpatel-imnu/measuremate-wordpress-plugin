@@ -1,9 +1,9 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-function tggr_view_promotion()
+function measuremate_view_promotion()
 {
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
     $current_user = wp_get_current_user();
     $hashed_email = '';
     $email = '';
@@ -74,5 +74,5 @@ function tggr_view_promotion()
     }
 }
 
-add_action('wp_footer', 'tggr_view_promotion');
+add_action('wp_footer', 'measuremate_view_promotion');
 ?>

@@ -1,58 +1,72 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function tggr_options_page() {
+function measuremate_options_page() {
     add_menu_page(
-        'TAGGRS',    // Page title
-        'TAGGRS',             // Menu title
+        'Measuremate - Your Personal GA4 Expert',    // Page title
+        'Measuremate',             // Menu title
         'manage_options',            // Capability
         'wc-gtm-settings',           // Menu slug
-        'tggr_options_page_html',  // Callback function
-        plugins_url('/images/wp-logo-taggrs.png', __FILE__),       // Icon URL (using a WordPress dashicon)
+        'measuremate_options_page_html',  // Callback function
+        plugins_url('/images/measuremate-3d-logo.png', __FILE__),       // Icon URL (using a WordPress dashicon)
         25                           // Position
     );
 }
-add_action('admin_menu', 'tggr_options_page');
+add_action('admin_menu', 'measuremate_options_page');
 
-function tggr_admin_styles() {
-    echo "
+function measuremate_admin_styles() {
+    ?>
     <style>
-        #adminmenu .toplevel_page_wc-gtm-settings img {
-            padding-top: 6px;  /* Adjust as needed */
+        /* Target the menu icon specifically using the menu class */
+        #adminmenu .toplevel_page_wc-gtm-settings .wp-menu-image img {
+            width: 20px !important;
+            height: 20px !important;
+            padding: 6px 0 !important;
+            box-sizing: content-box !important;
         }
+        
+        /* When menu is active/current */
+        #adminmenu .toplevel_page_wc-gtm-settings.current .wp-menu-image img,
     </style>
-    ";
+    <?php
 }
-add_action('admin_head', 'tggr_admin_styles');
+add_action('admin_head', 'measuremate_admin_styles');
 
-function tggr_enqueue_admin_styles() {
+function measuremate_enqueue_admin_styles() {
     // Ensure it's only loaded in the WordPress dashboard.
     if ( is_admin() ) {
         wp_enqueue_style( 'wc-gtm-admin-styles', plugins_url('/css/style.css', __FILE__), array(), '1.0.0' );
+        wp_enqueue_style(
+            'measuremate-outfit-font',
+            'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap',
+            array(),
+            '1.0.0'
+        );
     }
+
 }
-add_action( 'admin_enqueue_scripts', 'tggr_enqueue_admin_styles' );
+add_action( 'admin_enqueue_scripts', 'measuremate_enqueue_admin_styles' );
 
 
-function tggr_options_page_html() {
+function measuremate_options_page_html() {
     if (!current_user_can('manage_options')) {
         return;
     }
 
-    settings_errors('tggr_messages');
-
-    // Select tab, can be: gtm, events
-    $active_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'gtm';
-    switch($active_tab):
-        case 'gtm':
-        case 'events':
-            break;
-        default:
-            $active_tab = 'gtm';
-        endswitch;
+    settings_errors('measuremate_messages');
 
     ?>
     <style>
+        body, .wrap, input, select, textarea, h1, h2, h3, h4, h5, h6, p {
+            font-family: 'Outfit', Arial, sans-serif !important;
+        }
+
+        #adminmenu .toplevel_page_wc-gtm-settings img {
+            width: 20px !important;
+            height: auto !important;
+        }   
+
+
         .custom-container {
             margin: 0;
             text-align: center;
@@ -94,8 +108,14 @@ function tggr_options_page_html() {
 
         .btn-primary {
             color: #fff;
-            background-color: #299f15;
-            border-color: #299f15;
+            background-color: #000;
+            border-color: #000;
+        }
+
+        .btn-primary:hover {
+            background-color: #333;
+            border-color: #333;
+            color: #fff;
         }
 
         .btn-secondary {
@@ -103,57 +123,113 @@ function tggr_options_page_html() {
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
+        /* Events table styles */
+        .events-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #f8f8f8;
+            margin-top: 20px;
+        }
+
+        .events-table td {
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            background: #f8f8f8;
+        }
+
+        .events-table label {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .events-table input[type="checkbox"] {
+            margin-right: 8px;
+            margin-left: 0;
+            accent-color: #000;
+        }
+
+        /* Override WordPress default checkbox styles */
+        .events-table input[type="checkbox"]:checked::before {
+            content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="black" d="M14.83 4.89l1.34.94-5.81 8.38H9.02L5.78 9.67l1.34-1.25 2.57 2.4z"/></svg>');
+        }
+
+        /* Main content container width adjustment */
+        .main-content-wrapper {
+            max-width: 75%;
+        }
+
+        /* Logo padding adjustment */
+        .measuremate-logo {
+            margin-top: 10px !important;
+            margin-bottom: 10px !important;
+        }
+
+        /* Submit button */
+        .wp-core-ui .button-primary {
+            background: #000;
+            border-color: #000;
+            color: #fff;
+        }
+
+        .wp-core-ui .button-primary:hover {
+            background: #333;
+            border-color: #333;
+        }
     </style>
-    <script src="<?php echo plugins_url('/admin.js', __FILE__); ?>"></script>
-    <div class="wrap">
-        <?php $image_url = PLUGIN_PATH . 'includes/admin/images/taggrs-logo-blauw.png'; ?>
-        <img src="<?php echo esc_url($image_url)  ?>" style="width: 250px; height: auto; margin-top: 25px; margin-bottom: 25px;"></img>
+<div class="wrap">
+    <?php 
+    // Fix for line 179: Use wp_get_attachment_image_url if possible, or ensure the path is correct
+    $image_url = plugins_url('/images/measuremate-logo.png', __FILE__); 
+    ?>
+    <img src="<?php echo esc_url($image_url); ?>" alt="Measuremate Logo" class="measuremate-logo" style="width: 250px; height: auto;">
 
-        <div style="display: flex; justify-content: space-between;">
-            <!-- Main Settings/Events Section -->
-            <div style="flex: 70%; max-width: 70%; padding-right: 2%;">
-                <div class="postbox">
-                    <div class="inside">
-                        <form action="options.php" method="post" id="taggrs-options-form">
-                            <?php
-                            settings_fields('tggr'); // This registers nonces etc. for the page
 
-                            // Display both settings, but use a PHP condition to hide the non-active section
-                            ?>
-                            <div <?php $active_tab == 'gtm' ? '' : 'style="display:none"'; ?>>
-                                <?php do_settings_sections('wc-gtm-settings'); ?>
-                            </div>
-                            <div <?php $active_tab == 'events' ? '' : 'style="display:none"'; ?>>
-                                <?php do_settings_sections('wc-gtm-settings-events'); ?>
-                            </div>
-                            <?php
-                            submit_button('Save Changes');
-                            ?>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div style="flex: 28%; max-width: 28%; height: 100%;">
-                 <div class="postbox">
-                     <div class="custom-container">
-                         <h1 class="custom-heading">
-                             <span class="bolder">Welcome in the world of TAGGRS!</span>
-                             <span class="smaller">Check out Server Side Tracking</span>
-                         </h1>
-                         <p class="custom-paragraph">Enhance your website's performance and data privacy with server side tracking through Google Tag Manager. Discover the ease and efficiency of managing your tags on TAGGRS' reliable and user-friendly platform. Start optimizing your tagging strategy today!</p>
-                         <div>
-                             <a href="https://taggrs.io/" class="custom-button btn-primary" target="_blank">Check out TAGGRS</a>
-                         </div>
-                     </div>
-                 </div>
+        <div style="display: flex; justify-content: space-between; align-items: stretch;">
+    <!-- Main Settings/Events Section -->
+    <div class="main-content-wrapper" style="flex: 75%; max-width: 75%; padding-right: 2%;">
+        <div class="postbox" style="height: 100%; box-sizing: border-box;">
+            <div class="inside">
+                <form action="options.php" method="post" id="measuremate-options-form">
+                    <?php
+                    settings_fields('measuremate'); // This registers nonces etc. for the page
+                    
+                    // Display GTM settings
+                    do_settings_sections('wc-gtm-settings');
+                    
+                    // Display Events settings
+                    do_settings_sections('wc-gtm-settings-events');
+                    
+                    submit_button('Save Changes');
+                    ?>
+                </form>
             </div>
         </div>
+    </div>
+    
+    <!-- Right Sidebar with iframe -->
+    <div style="flex: 23%; max-width: 23%;">
+        <div class="postbox" style="height: 100%; box-sizing: border-box; margin: 0;">
+            <div class="custom-container" style="padding: 0; height: 100%; overflow: hidden;">
+                <iframe 
+                    src="https://app.themeasuremate.com" 
+                    style="width: 100%; height: 100%; border: none; display: block;"
+                    title="Measuremate App"
+                    frameborder="0"
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+    </div>
     </div>
     <?php
 }
 
 
-function tggr_get_defaults() {
+function measuremate_get_defaults() {
     return [
         'view_item' => 1,
         'add_to_cart' => 1,
@@ -169,101 +245,183 @@ function tggr_get_defaults() {
         'select_item' => 1,
         'view_promotion' => 1,
         'select_promotion' => 1,
-        'tggr_url' => 'https://googletagmanager.com/'
+        'page_view'=> 1,
+        'clicked'=> 1,
+        'form_submitted'=> 1,
+        'input_blurred'=> 1,
+        'input_changed'=> 1,
+        'input_focused'=> 1,
+        'measuremate_url' => 'https://googletagmanager.com/'
     ];
 }
 
-add_filter('default_option_tggr_options', 'tggr_get_defaults');
+add_filter('default_option_measuremate_options', 'measuremate_get_defaults');
 
-function tggr_admin_scripts($hook) {
-    if ('settings_page_wc-gtm-settings' != $hook) {
+function measuremate_admin_scripts($hook) {
+    if ('toplevel_page_wc-gtm-settings' != $hook) {
         return;
     }
-    wp_enqueue_script('wc-gtm-admin', plugins_url('/js/admin.js', __FILE__), array('jquery'), null, true);
+    wp_enqueue_script('wc-gtm-admin', plugins_url('/js/admin.js', __FILE__), array('jquery'), '1.0.0', true);
 }
-add_action('admin_enqueue_scripts', 'tggr_admin_scripts');
+add_action('admin_enqueue_scripts', 'measuremate_admin_scripts');
 
-function tggr_admin_notices() {
-    if ($error = get_transient('tggr_settings_error')) {
-        echo esc_html('<div class="error"><p>' . $error . '</p></div>');
-        delete_transient('tggr_settings_error');  // Remove the error now that we've displayed it.
+function measuremate_admin_notices() {
+    if ($error = get_transient('measuremate_settings_error')) {
+        echo '<div class="error"><p>' . esc_html($error) . '</p></div>';
+        delete_transient('measuremate_settings_error');  // Remove the error now that we've displayed it.
     }
 }
 
-add_action('admin_notices', 'tggr_admin_notices');
+add_action('admin_notices', 'measuremate_admin_notices');
 
-function tggr_code_sanitize($input) {
+function measuremate_code_sanitize($input) {
     if (!empty($input) && strpos($input, 'GTM-') !== 0) { // If the input doesn't start with 'GTM-'
-        set_transient('tggr_settings_error', 'The GTM Code must start with "GTM-".', 45);
-        return get_option('tggr_code'); // Return the old value
+        set_transient('measuremate_settings_error', 'The GTM Code must start with "GTM-".', 45);
+        return get_option('measuremate_code'); // Return the old value
     }
     return sanitize_text_field($input);
 }
 
-function tggr_events_sanitize($input) {
+function measuremate_events_sanitize($input) {
     return $input;
 }
 
-function tggr_options_sanitize($input) {
-    $input['tggr_url'] = 'https://googletagmanager.com/';
-
-    $input['enhanced_tracking_v2'] = 0;
-    $input['enhanced_tracking_v2_container_id'] = '';
-
-    if (!empty($input['enhanced_tracking_v2']) && empty($input['enhanced_tracking_v2_container_id'])) {
-        $input['enhanced_tracking_v2'] = 0;
+function measuremate_options_sanitize($input) {
+    $sanitized = array();
+    
+    // Define all possible checkbox fields
+    $checkbox_fields = array(
+        'view_item', 'add_to_cart', 'purchase', 'view_item_list',
+        'begin_checkout', 'view_cart', 'refund', 'add_to_wishlist',
+        'add_payment_info', 'add_shipping_info', 'remove_from_cart',
+        'select_item', 'view_promotion', 'select_promotion',
+        'page_view', 'clicked', 'form_submitted', 'input_blurred',
+        'input_changed', 'input_focused'
+    );
+    
+    // Sanitize checkboxes
+    foreach ($checkbox_fields as $field) {
+        $sanitized[$field] = isset($input[$field]) ? 1 : 0;
     }
-
-    return $input;
+    
+    // Sanitize other fields
+    $sanitized['measuremate_url'] = 'https://googletagmanager.com/';
+    $sanitized['measuremate_url_toggle'] = isset($input['measuremate_url_toggle']) ? sanitize_text_field($input['measuremate_url_toggle']) : '';
+    $sanitized['enhanced_tracking_v2'] = isset($input['enhanced_tracking_v2']) ? 1 : 0;
+    $sanitized['enhanced_tracking_v2_container_id'] = isset($input['enhanced_tracking_v2_container_id']) ? sanitize_text_field($input['enhanced_tracking_v2_container_id']) : '';
+    
+    // Reset enhanced tracking if no container ID
+    if (!empty($sanitized['enhanced_tracking_v2']) && empty($sanitized['enhanced_tracking_v2_container_id'])) {
+        $sanitized['enhanced_tracking_v2'] = 0;
+    }
+    
+    return $sanitized;
 }
 
 
-function tggr_success_message($old_value, $value, $option) {
+function measuremate_success_message($old_value, $value, $option) {
     if ($old_value !== $value) { // Only show if the value has changed.
-        add_settings_error('tggr_messages', 'tggr_message', 'Settings saved', 'updated');
+        add_settings_error('measuremate_messages', 'measuremate_message', 'Settings saved', 'updated');
     }
 }
-add_action('update_option_tggr_code', 'tggr_success_message', 10, 3);
-add_action('update_option_tggr_url', 'tggr_success_message', 10, 3);
-add_action('update_option_tggr_options', 'tggr_success_message', 10, 3);
+add_action('update_option_measuremate_code', 'measuremate_success_message', 10, 3);
+add_action('update_option_measuremate_url', 'measuremate_success_message', 10, 3);
+add_action('update_option_measuremate_options', 'measuremate_success_message', 10, 3);
 
-function tggr_section_gtm_cb($args) {
+function measuremate_section_gtm_cb($args) {
     echo esc_html('Enter your Google Tag Manager settings below:');
 }
 
-function tggr_code_cb($args) {
-    $gtm_code = get_option('tggr_code');
-    echo '<input name="tggr_code" id="tggr_code" type="text" value="' . esc_attr($gtm_code) . '" class="regular-text">';
-    echo '<p class="description">You can fill in your Google Tag Manager web container ID</p>';
+function measuremate_code_cb($args) {
+    $gtm_code = get_option('measuremate_code');
+    echo '<input name="measuremate_code" id="measuremate_code" type="text" value="' . esc_attr($gtm_code) . '" class="regular-text">';
+    // echo '<p class="description">You can fill in your Google Tag Manager web container ID</p>';
 }
 
-function tggr_url_cb($args) {
-    $gtm_url = get_option('tggr_url');
-    echo ( '<input name="tggr_url" id="tggr_url" type="text" value="' . esc_attr($gtm_url) . '" class="regular-text">' );
+function measuremate_url_cb($args) {
+    $gtm_url = get_option('measuremate_url');
+    echo ( '<input name="measuremate_url" id="measuremate_url" type="text" value="' . esc_attr($gtm_url) . '" class="regular-text">' );
 }
 
-function tggr_section_callback($args) {
-    echo ( '<p class="description"><i>You have the option to select the events of your choice, and all events include the transmission of enhanced conversions.</i></p>' );
-    echo ( '<p class="description">Enable or disable the following events:</p>' );
+function measuremate_section_callback($args) {
+    echo ( '<p class="description">✅ Please Enable/Disable the required DataLayer Events from the list below. 👉 Click SAVE when finished.</p>' );
+    
+    // Start the events table
+    $options = get_option('measuremate_options');
+    $events = [
+        'view_item' => 'View Item',
+        'add_to_cart' => 'Add to Cart',
+        'purchase' => 'Purchase',
+        'view_cart' => 'View Cart',
+        'view_item_list' => 'View Item List',
+        'begin_checkout' => 'Begin Checkout',
+        'refund' => 'Refund',
+        'add_to_wishlist' => 'Add to Wishlist',
+        'add_payment_info' => 'Add Payment Info',
+        'add_shipping_info' => 'Add Shipping Info',
+        'remove_from_cart' => 'Remove from Cart',
+        'select_item' => 'Select Item',
+        'view_promotion' => 'View Promotion',
+        'select_promotion' => 'Select Promotion',
+        'page_view' => 'Page View',
+        'clicked' => 'Clicked',
+        'form_submitted' => 'Form Submitted',
+        'input_blurred' => 'Input Blurred',
+        'input_changed' => 'Input Changed',
+        'input_focused' => 'Input Focused',
+    ];
+    
+    echo '<table class="events-table">';
+    
+    $count = 0;
+    foreach ($events as $event_key => $event_label) {
+        if ($count % 4 == 0) {
+            echo '<tr>';
+        }
+        
+        $checked = isset($options[$event_key]) ? checked($options[$event_key], 1, false) : '';
+        
+        echo '<td>';
+        echo '<label for="measuremate_field_' . esc_attr($event_key) . '">';
+        echo '<input name="measuremate_options[' . esc_attr($event_key) . ']" type="checkbox" id="measuremate_field_' . esc_attr($event_key) . '" value="1" ' . esc_attr($checked) . '>';
+        echo esc_html($event_label);
+        echo '</label>';
+        echo '</td>';
+        
+        $count++;
+        if ($count % 4 == 0) {
+            echo '</tr>';
+        }
+    }
+    
+    // Close the last row if needed
+    if ($count % 4 != 0) {
+        while ($count % 4 != 0) {
+            echo '<td></td>';
+            $count++;
+        }
+        echo '</tr>';
+    }
+    
+    echo '</table>';
 }
 
-function tggr_field_callback($args) {
-    $options = get_option('tggr_options');
-    $checked = isset($options[$args['event_name']]) ? checked($options[$args['event_name']], 1, false) : '';
-    echo ("<input name='tggr_options[" . esc_attr($args['event_name']). "]' type='checkbox' id='" . esc_attr($args['label_for']) . "' value='1'  " . esc_attr($checked) . ">");
+function measuremate_field_callback($args) {
+    // This function is no longer needed since we're handling everything in measuremate_section_callback
+    return;
 }
 
-function tggr_url_toggle_cb() {
-    $options = get_option('tggr_options', array());
-    $value = isset($options['tggr_url_toggle']) ? $options['tggr_url_toggle'] : '';
-    echo ( '<input type="text" id="tggr_url_toggle" name="tggr_options[tggr_url_toggle]" style="width:350px; " value="' . esc_attr($value) . '" />' );
-    echo ( '<p class="description">Read <a href="https://taggrs.io/en/enhanced-tracking-script/">this article</a> to find out how to use the Enhanced Tracking Script</p>' );
+function measuremate_url_toggle_cb() {
+    $options = get_option('measuremate_options', array());
+    $value = isset($options['measuremate_url_toggle']) ? $options['measuremate_url_toggle'] : '';
+    echo ( '<input type="text" id="measuremate_url_toggle" name="measuremate_options[measuremate_url_toggle]" style="width:350px; " value="' . esc_attr($value) . '" />' );
+    echo ( '<p class="description">Read <a href="https://app.themeasuremate.com">this article</a> to find out how to use the Enhanced Tracking Script</p>' );
     echo ( '<p class="description"><i>If you do not want to use the Enhanced Tracking Script, leave this field empty</i></p>' );
 }
 
-function tggr_enhanced_tracking_v2_cb($args) {
-    $options = get_option('tggr_options');
-    $disabled = !isset($options['tggr_url_toggle']) || $options['tggr_url_toggle'] == '';
+function measuremate_enhanced_tracking_v2_cb($args) {
+    $options = get_option('measuremate_options');
+    $disabled = !isset($options['measuremate_url_toggle']) || $options['measuremate_url_toggle'] == '';
     $v2_active = isset($options['enhanced_tracking_v2']) ? checked($options['enhanced_tracking_v2'], 1, false) : '';
     $container_id = isset($options['enhanced_tracking_v2_container_id']) ? $options['enhanced_tracking_v2_container_id'] : '';
 
@@ -271,73 +429,54 @@ function tggr_enhanced_tracking_v2_cb($args) {
     
     // Toggle
     echo "<div style='display:flex; gap: 6px;'>";
-    echo ("<input style='margin-top: 7px;' name='tggr_options[enhanced_tracking_v2]' " . ($disabled ? 'disabled' : '') . " type='checkbox' id='tggr_enhanced_tracking_v2' value='1' " . esc_attr($v2_active) . ">");
+    echo ("<input style='margin-top: 7px;' name='measuremate_options[enhanced_tracking_v2]' " . ($disabled ? 'disabled' : '') . " type='checkbox' id='measuremate_enhanced_tracking_v2' value='1' " . esc_attr($v2_active) . ">");
     echo '<p class="description"><b>Enable</b></p>';
     echo "</div>";
 
-    // TAGGRS Container Identifier
-    echo '<p class="description" style="margin-top: 10px;"><b>TAGGRS Container Identifier</b></p>';
-    echo '<input type="text" id="enhanced_tracking_v2_container_id" name="tggr_options[enhanced_tracking_v2_container_id]" ' . ($disabled ? 'disabled' : "") . ' style="width:350px;" value="' . esc_attr($container_id) . '" />';
+    echo '<p class="description" style="margin-top: 10px;"><b>Measuremate Container Identifier</b></p>';
+    echo '<input type="text" id="enhanced_tracking_v2_container_id" name="measuremate_options[enhanced_tracking_v2_container_id]" ' . ($disabled ? 'disabled' : "") . ' style="width:350px;" value="' . esc_attr($container_id) . '" />';
     
     echo '</div>';
-    echo '<p class="description"><i>The Enhanced Tracking Script v2 can only be used when you have entered a subdomain for the Enhanced Tracking Script.</i></p>';
+    // echo '<p class="description"><i>The Enhanced Tracking Script v2 can only be used when you have entered a subdomain for the Enhanced Tracking Script.</i></p>';
 }
 
 
-function tggr_settings_init() {
+function measuremate_settings_init() {
     // Register the GTM code setting.
-    register_setting('tggr', 'tggr_code', array('sanitize_callback' => 'tggr_code_sanitize'));
+    register_setting('measuremate', 'measuremate_code', array('sanitize_callback' => 'measuremate_code_sanitize'));
 
     // Add section for GTM
     add_settings_section(
-        'tggr_section_gtm',
+        'measuremate_section_gtm',
         'Google Tag Manager Settings',
-        'tggr_section_gtm_cb',
+        'measuremate_section_gtm_cb',
         'wc-gtm-settings'
     );
 
     // Add field to input GTM code
     add_settings_field(
-        'tggr_code',
-        'Google Tag Manager Code',
-        'tggr_code_cb',
+        'measuremate_code',
+        'GTM Container Id',
+        'measuremate_code_cb',
         'wc-gtm-settings',
-        'tggr_section_gtm'
+        'measuremate_section_gtm'
     );
 
-    register_setting('tggr', 'tggr_url', array('sanitize_callback' => 'tggr_options_sanitize'));
-
-    // Add field to input GTM url
-    add_settings_field(
-        'tggr_url',
-        'Subdomain for Enhanced Tracking Script',
-        'tggr_url_toggle_cb',
-        'wc-gtm-settings',
-        'tggr_section_gtm'
-    );
-
-    // Add field for Enhanced Tracking Script v2
-    add_settings_field(
-        'tggr_enhanced_tracking_v2',
-        'Enhanced Tracking Script v2',
-        'tggr_enhanced_tracking_v2_cb',
-        'wc-gtm-settings',
-        'tggr_section_gtm'
-    );
+    register_setting('measuremate', 'measuremate_url', array('sanitize_callback' => 'measuremate_options_sanitize'));
 
     // Register a new setting for our options page for the events.
-    register_setting('tggr', 'tggr_options');
-
+    register_setting('measuremate', 'measuremate_options', array('sanitize_callback' => 'measuremate_options_sanitize'));
 
     // Add a new section to our options page for the events.
     add_settings_section(
-        'tggr_section_events',       // Changed this to make it more descriptive
-        'Events',
-        'tggr_section_callback',
-        'wc-gtm-settings-events'      // Different slug for the events page
+        'measuremate_section_events',       
+        'Select DataLayer Events to Track',
+        'measuremate_section_callback',
+        'wc-gtm-settings-events'      
     );
 
-    // Add fields to our section.
+    // We don't need to add individual fields anymore since we're handling everything in measuremate_section_callback
+    // But WordPress still expects them for the settings API to work properly, so we add dummy fields
     $events = [
         'view_item',
         'add_to_cart',
@@ -352,26 +491,32 @@ function tggr_settings_init() {
         'remove_from_cart',
         'select_item',
         'view_promotion',
-        'select_promotion'
+        'select_promotion',
+        'page_view',
+        'clicked',
+        'form_submitted',
+        'input_blurred',
+        'input_changed',
+        'input_focused',
     ];
 
-    foreach ($events as $event) {
-        add_settings_field(
-            'tggr_field_' . $event,
-            ucfirst(str_replace('_', ' ', $event)),
-            'tggr_field_callback',
-            'wc-gtm-settings-events',   // This matches the slug above for the events section
-            'tggr_section_events',    // Use the updated section ID here
-            [
-                'label_for' => 'tggr_field_' . $event,
-                'event_name' => $event
-            ]
-        );
-    }
+    // foreach ($events as $event) {
+    //     add_settings_field(
+    //         'measuremate_field_' . $event,
+    //         ucfirst(str_replace('_', ' ', $event)),
+    //         'measuremate_field_callback',
+    //         'wc-gtm-settings-events',   
+    //         'measuremate_section_events',    
+    //         [
+    //             'label_for' => 'measuremate_field_' . $event,
+    //             'event_name' => $event
+    //         ]
+    //     );
+    // }
 }
 
 
-add_action('admin_init', 'tggr_settings_init');
+add_action('admin_init', 'measuremate_settings_init');
 
 
 ?>

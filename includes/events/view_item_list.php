@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function tggr_gtm_view_item_list()
+function measuremate_gtm_view_item_list()
 {
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
     $current_user = wp_get_current_user();
     $hashed_email = '';
     $email = '';
@@ -19,7 +19,7 @@ function tggr_gtm_view_item_list()
             foreach ($wp_query->posts as $post) {
                 $product = wc_get_product($post->ID);
                 if ($product) {
-                    $products[] = tggr_format_item($product->get_id());
+                    $products[] = measuremate_format_item($product->get_id());
                 }
             }
             $item_list_id = 'default_list_id';
@@ -57,6 +57,6 @@ function tggr_gtm_view_item_list()
         }
     }
 }
-add_action('wp_footer', 'tggr_gtm_view_item_list');
+add_action('wp_footer', 'measuremate_gtm_view_item_list');
 
 ?>

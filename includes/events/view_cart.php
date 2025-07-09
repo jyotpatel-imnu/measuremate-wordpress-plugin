@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function tggr_gtm_view_cart()
+function measuremate_gtm_view_cart()
 {
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
 
     $current_user = wp_get_current_user();
     $hashed_email = '';
@@ -28,7 +28,7 @@ function tggr_gtm_view_cart()
                 $categories = wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'names'));
                 $category_list = implode(', ', $categories);
 
-                $products[] = tggr_format_item($product->get_id(), $cart_item['quantity']);
+                $products[] = measuremate_format_item($product->get_id(), $cart_item['quantity']);
                 $total_value += $item_total;
             }
 ?>
@@ -53,7 +53,7 @@ function tggr_gtm_view_cart()
         }
     }
 }
-add_action('wp_footer', 'tggr_gtm_view_cart');
+add_action('wp_footer', 'measuremate_gtm_view_cart');
 
 
 

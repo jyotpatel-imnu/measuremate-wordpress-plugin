@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function tggr_add_to_wishlist()
+function measuremate_add_to_wishlist()
 {
-    $options = get_option('tggr_options');
+    $options = get_option('measuremate_options');
 
     $current_user = wp_get_current_user();
     $hashed_email = '';
@@ -14,7 +14,7 @@ function tggr_add_to_wishlist()
         $wishlist_items = get_user_wishlist_items(); // Vervang dit door de daadwerkelijke logica om verlanglijst items op te halen.
 
         $cart = WC()->cart;
-        $items = tggr_format_cart_items($cart);
+        $items = measuremate_format_cart_items($cart);
 
         $total_value = 0;
         foreach ($wishlist_items as $item) {
@@ -45,5 +45,5 @@ function tggr_add_to_wishlist()
 }
 
 // Pas de hook aan op basis van je verlanglijst functionaliteit.
-add_action('your_wishlist_add_action', 'tggr_add_to_wishlist');
+add_action('your_wishlist_add_action', 'measuremate_add_to_wishlist');
 ?>
