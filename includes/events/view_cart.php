@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function measuremate_gtm_view_cart()
+function measgaau_gtm_view_cart()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
 
     $current_user = wp_get_current_user();
     $hashed_email = '';
@@ -28,33 +28,37 @@ function measuremate_gtm_view_cart()
                 $categories = wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'names'));
                 $category_list = implode(', ', $categories);
 
-                $products[] = measuremate_format_item($product->get_id(), $cart_item['quantity']);
+                $products[] = measgaau_format_item($product->get_id(), $cart_item['quantity']);
                 $total_value += $item_total;
             }
-?>
-            <script>
+            
+            // Register and enqueue script
+            wp_register_script('measgaau-view-cart-tracking', '', array(), '1.0', true);
+            wp_enqueue_script('measgaau-view-cart-tracking');
+            
+            // Prepare data for JavaScript
+            $view_cart_data = array(
+                'event' => 'view_cart',
+                'ecommerce' => array(
+                    'currency' => get_woocommerce_currency(),
+                    'value' => $total_value,
+                    'items' => $products
+                ),
+                'user_data' => array(
+                    'email_hashed' => $hashed_email,
+                    'email' => $email
+                )
+            );
+            
+            // Add inline script
+            $inline_script = '
                 window.dataLayer = window.dataLayer || [];
-                dataLayer.push({
-                    'event': 'view_cart',
-                    'ecommerce': {
-                        'currency': '<?php echo esc_js(get_woocommerce_currency()); ?>',
-                        'value': <?php echo esc_js($total_value); ?>,
-                        'items': <?php echo wp_json_encode($products); ?>
-                    },
-                    'user_data': {
-                        'email_hashed': '<?php echo esc_js($hashed_email); ?>',
-                        'email': '<?php echo esc_js($email); ?>'
-                        // Include any additional user data here
-                    }
-                });
-            </script>
-
-<?php
+                dataLayer.push(' . wp_json_encode($view_cart_data) . ');
+            ';
+            
+            wp_add_inline_script('measgaau-view-cart-tracking', $inline_script);
         }
     }
 }
-add_action('wp_footer', 'measuremate_gtm_view_cart');
-
-
-
+add_action('wp_footer', 'measgaau_gtm_view_cart');
 ?>

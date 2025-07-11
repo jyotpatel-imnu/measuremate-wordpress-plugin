@@ -6,7 +6,7 @@ jQuery(document).ready(function ($) {
       console.log("removing!");
 
       // Get the product data
-      var removedProduct = measuremate_vars.removedProduct;
+      var removedProduct = measgaau_vars.removedProduct;
       console.log(removedProduct);
 
       if (removedProduct) {

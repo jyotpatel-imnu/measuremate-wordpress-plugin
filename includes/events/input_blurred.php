@@ -1,22 +1,22 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function measuremate_input_blurred_ajax_handler()
+function measgaau_input_blurred_ajax_handler()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     if (!isset($options['input_blurred']) || !$options['input_blurred']) {
         wp_die();
     }
     
     // Verify nonce for security - unslash and sanitize first
     $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
-    if (!wp_verify_nonce($nonce, 'measuremate_input_blurred_nonce')) {
+    if (!wp_verify_nonce($nonce, 'measgaau_input_blurred_nonce')) {
         wp_die('Security check failed');
     }
     
     $current_user = wp_get_current_user();
     $email = $current_user->exists() ? $current_user->user_email : '';
-    $hashed_email = $email ? measuremate_hash_email($email) : '';
+    $hashed_email = $email ? measgaau_hash_email($email) : '';
     
     // Unslash and sanitize all POST data
     $input_type = isset($_POST['input_type']) ? sanitize_text_field(wp_unslash($_POST['input_type'])) : '';
@@ -45,74 +45,87 @@ function measuremate_input_blurred_ajax_handler()
     );
     
     $cookie_value = base64_encode(wp_json_encode($event_data));
-    setcookie('measuremate_input_blurred_data', $cookie_value, time() + 300, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), false);
+    setcookie('measgaau_input_blurred_data', $cookie_value, time() + 300, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), false);
     
     wp_send_json_success();
 }
-add_action('wp_ajax_measuremate_input_blurred', 'measuremate_input_blurred_ajax_handler');
-add_action('wp_ajax_nopriv_measuremate_input_blurred', 'measuremate_input_blurred_ajax_handler');
+add_action('wp_ajax_measgaau_input_blurred', 'measgaau_input_blurred_ajax_handler');
+add_action('wp_ajax_nopriv_measgaau_input_blurred', 'measgaau_input_blurred_ajax_handler');
 
-function measuremate_print_input_blurred_script()
+function measgaau_enqueue_input_blurred_script()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     if (!isset($options['input_blurred']) || !$options['input_blurred']) {
         return;
     }
-    ?>
-    <script>
+    
+    // Register and enqueue script
+    wp_register_script('measgaau-input-blurred-tracking', '', array('jquery'), '1.0', true);
+    wp_enqueue_script('measgaau-input-blurred-tracking');
+    
+    // Localize script to pass Ajax URL and nonce
+    wp_localize_script('measgaau-input-blurred-tracking', 'measgaau_input_blurred_ajax', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('measgaau_input_blurred_nonce'),
+        'cookie_path' => COOKIEPATH,
+        'cookie_domain' => COOKIE_DOMAIN
+    ));
+    
+    // Add inline script
+    $inline_script = '
         jQuery(document).ready(function($) {
-            var ajaxurl = '<?php echo esc_url(admin_url('admin-ajax.php')); ?>';
-            var nonce = '<?php echo esc_js(wp_create_nonce('measuremate_input_blurred_nonce')); ?>';
+            var ajaxurl = measgaau_input_blurred_ajax.ajax_url;
+            var nonce = measgaau_input_blurred_ajax.nonce;
             
             function pushInputBlurredData() {
-                var cookieValue = document.cookie.split('; ').find(row => row.startsWith('measuremate_input_blurred_data='));
+                var cookieValue = document.cookie.split("; ").find(row => row.startsWith("measgaau_input_blurred_data="));
                 if (cookieValue) {
                     try {
-                        var data = JSON.parse(atob(decodeURIComponent(cookieValue.split('=')[1])));
-                        console.log('Input Blurred:', data);
+                        var data = JSON.parse(atob(decodeURIComponent(cookieValue.split("=")[1])));
+                        console.log("Input Blurred:", data);
                         window.dataLayer = window.dataLayer || [];
                         window.dataLayer.push(data);
                         
-                        document.cookie = "measuremate_input_blurred_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=<?php echo esc_js(COOKIEPATH); ?>; domain=<?php echo esc_js(COOKIE_DOMAIN); ?>";
+                        document.cookie = "measgaau_input_blurred_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=" + measgaau_input_blurred_ajax.cookie_path + "; domain=" + measgaau_input_blurred_ajax.cookie_domain;
                     } catch(e) {
-                        console.error('Input blurred data error:', e);
+                        console.error("Input blurred data error:", e);
                     }
                 }
             }
             
             function getInputLabel($input) {
-                var label = '';
+                var label = "";
                 
-                if ($input.attr('id')) {
-                    label = $('label[for="' + $input.attr('id') + '"]').text().trim();
+                if ($input.attr("id")) {
+                    label = $(\'label[for="\' + $input.attr("id") + \'"]\').text().trim();
                 }
                 
                 if (!label) {
-                    label = $input.closest('label').text().trim();
+                    label = $input.closest("label").text().trim();
                 }
                 
                 if (!label) {
-                    label = $input.prev('label').text().trim();
+                    label = $input.prev("label").text().trim();
                 }
                 
                 if (!label) {
-                    label = $input.attr('placeholder') || '';
+                    label = $input.attr("placeholder") || "";
                 }
                 
                 return label.substring(0, 100);
             }
             
-            $(document).on('blur', 'input:not([type="submit"]):not([type="button"]), textarea, select', function(e) {
+            $(document).on("blur", "input:not([type=\'submit\']):not([type=\'button\']), textarea, select", function(e) {
                 var $input = $(this);
                 
                 var inputData = {
-                    action: 'measuremate_input_blurred',
+                    action: "measgaau_input_blurred",
                     nonce: nonce,
-                    input_type: $input.prop('tagName').toLowerCase() === 'select' ? 'select' : ($input.attr('type') || 'text'),
-                    input_id: $input.attr('id') || '',
+                    input_type: $input.prop("tagName").toLowerCase() === "select" ? "select" : ($input.attr("type") || "text"),
+                    input_id: $input.attr("id") || "",
                     input_label: getInputLabel($input),
-                    had_value: $input.val() ? 'true' : 'false',
-                    page_title: document.title || '',
+                    had_value: $input.val() ? "true" : "false",
+                    page_title: document.title || "",
                     page_location: window.location.href,
                     gtm_unique_event_id: Date.now()
                 };
@@ -126,8 +139,9 @@ function measuremate_print_input_blurred_script()
             
             pushInputBlurredData();
         });
-    </script>
-    <?php
+    ';
+    
+    wp_add_inline_script('measgaau-input-blurred-tracking', $inline_script);
 }
-add_action('wp_footer', 'measuremate_print_input_blurred_script');
+add_action('wp_footer', 'measgaau_enqueue_input_blurred_script');
 ?>

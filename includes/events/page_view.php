@@ -1,16 +1,16 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function measuremate_page_view_event()
+function measgaau_page_view_event()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     if (!isset($options['page_view']) || !$options['page_view']) {
         return;
     }
 
     $current_user = wp_get_current_user();
     $email = $current_user->exists() ? $current_user->user_email : '';
-    $hashed_email = $email ? measuremate_hash_email($email) : '';
+    $hashed_email = $email ? measgaau_hash_email($email) : '';
 
     $event_data = array(
         'event' => 'page_view',
@@ -24,32 +24,43 @@ function measuremate_page_view_event()
 
     // Store data in cookie instead of inline script
     $cookie_value = base64_encode(wp_json_encode($event_data));
-    setcookie('measuremate_page_view_data', $cookie_value, time() + 300, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), false);
+    setcookie('measgaau_page_view_data', $cookie_value, time() + 300, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), false);
 }
-add_action('wp', 'measuremate_page_view_event');
+add_action('wp', 'measgaau_page_view_event');
 
-function measuremate_print_page_view_script()
+function measgaau_enqueue_page_view_script()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     if (!isset($options['page_view']) || !$options['page_view']) {
         return;
     }
-    ?>
-    <script>
+    
+    // Register and enqueue script
+    wp_register_script('measgaau-page-view-tracking', '', array('jquery'), '1.0', true);
+    wp_enqueue_script('measgaau-page-view-tracking');
+    
+    // Localize script
+    wp_localize_script('measgaau-page-view-tracking', 'measgaau_page_view', array(
+        'cookie_path' => COOKIEPATH,
+        'cookie_domain' => COOKIE_DOMAIN
+    ));
+    
+    // Add inline script
+    $inline_script = '
         jQuery(document).ready(function($) {
             function pushPageViewData() {
-                var cookieValue = document.cookie.split('; ').find(row => row.startsWith('measuremate_page_view_data='));
+                var cookieValue = document.cookie.split("; ").find(row => row.startsWith("measgaau_page_view_data="));
                 if (cookieValue) {
                     try {
-                        var data = JSON.parse(atob(decodeURIComponent(cookieValue.split('=')[1])));
-                        console.log('Page View:', data);
+                        var data = JSON.parse(atob(decodeURIComponent(cookieValue.split("=")[1])));
+                        console.log("Page View:", data);
                         window.dataLayer = window.dataLayer || [];
                         window.dataLayer.push(data);
                         
                         // Delete cookie after pushing data
-                        document.cookie = "measuremate_page_view_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=<?php echo esc_js(COOKIEPATH); ?>; domain=<?php echo esc_js(COOKIE_DOMAIN); ?>";
+                        document.cookie = "measgaau_page_view_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=" + measgaau_page_view.cookie_path + "; domain=" + measgaau_page_view.cookie_domain;
                     } catch(e) {
-                        console.error('Page view data error:', e);
+                        console.error("Page view data error:", e);
                     }
                 }
             }
@@ -57,9 +68,9 @@ function measuremate_print_page_view_script()
             // Check on load
             pushPageViewData();
         });
-    </script>
-    <?php
+    ';
+    
+    wp_add_inline_script('measgaau-page-view-tracking', $inline_script);
 }
-add_action('wp_footer', 'measuremate_print_page_view_script');
-
+add_action('wp_footer', 'measgaau_enqueue_page_view_script');
 ?>

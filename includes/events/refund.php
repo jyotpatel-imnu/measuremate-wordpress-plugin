@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function measuremate_refund($order_id)
+function measgaau_refund($order_id)
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     $order = wc_get_order($order_id);
 
     $cart = WC()->cart;
@@ -22,29 +22,34 @@ function measuremate_refund($order_id)
             $item_categories[] = $category->name;
         }
 
-        // Voeg hier aanvullende productcategorieën toe indien nodig
-        // Voorbeeld: $item_category2 = 'Adult';
-
-        $items[] = measuremate_format_item($product->get_id(), $item->get_quantity());
+        $items[] = measgaau_format_item($product->get_id(), $item->get_quantity());
     }
-
-?>
-    <script>
+    
+    // Register and enqueue script
+    wp_register_script('measgaau-refund-tracking', '', array(), '1.0', true);
+    wp_enqueue_script('measgaau-refund-tracking');
+    
+    // Prepare data for JavaScript
+    $refund_data = array(
+        'event' => 'refund',
+        'ecommerce' => array(
+            'currency' => $order->get_currency(),
+            'transaction_id' => $order_id,
+            'value' => $order->get_total(),
+            'shipping' => $order->get_shipping_total(),
+            'tax' => $order->get_total_tax(),
+            'items' => $items
+        )
+    );
+    
+    // Add inline script
+    $inline_script = '
         window.dataLayer = window.dataLayer || [];
-        dataLayer.push({
-            'event': 'refund',
-            'ecommerce': {
-                'currency': '<?php echo esc_js($order->get_currency()); ?>',
-                'transaction_id': '<?php echo esc_js($order_id); ?>',
-                'value': '<?php echo esc_js($order->get_total()); ?>',
-                'shipping': '<?php echo esc_js($order->get_shipping_total()); ?>',
-                'tax': '<?php echo esc_js($order->get_total_tax()); ?>',
-                'items': <?php echo wp_json_encode($items); ?>
-            }
-        });
-    </script>
-<?php
+        dataLayer.push(' . wp_json_encode($refund_data) . ');
+    ';
+    
+    wp_add_inline_script('measgaau-refund-tracking', $inline_script);
 }
 
-add_action('woocommerce_order_status_refunded', 'measuremate_refund');
+add_action('woocommerce_order_status_refunded', 'measgaau_refund');
 ?>

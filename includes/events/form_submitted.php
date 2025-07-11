@@ -1,22 +1,22 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function measuremate_form_submitted_ajax_handler()
+function measgaau_form_submitted_ajax_handler()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     if (!isset($options['form_submitted']) || !$options['form_submitted']) {
         wp_die();
     }
     
     // Verify nonce for security - unslash and sanitize first
     $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
-    if (!wp_verify_nonce($nonce, 'measuremate_form_submitted_nonce')) {
+    if (!wp_verify_nonce($nonce, 'measgaau_form_submitted_nonce')) {
         wp_die('Security check failed');
     }
     
     $current_user = wp_get_current_user();
     $email = $current_user->exists() ? $current_user->user_email : '';
-    $hashed_email = $email ? measuremate_hash_email($email) : '';
+    $hashed_email = $email ? measgaau_hash_email($email) : '';
     
     // Unslash and sanitize all POST data
     $form_id = isset($_POST['form_id']) ? sanitize_text_field(wp_unslash($_POST['form_id'])) : '';
@@ -47,74 +47,87 @@ function measuremate_form_submitted_ajax_handler()
     );
     
     $cookie_value = base64_encode(wp_json_encode($event_data));
-    setcookie('measuremate_form_submitted_data', $cookie_value, time() + 300, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), false);
+    setcookie('measgaau_form_submitted_data', $cookie_value, time() + 300, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), false);
     
     wp_send_json_success();
 }
-add_action('wp_ajax_measuremate_form_submitted', 'measuremate_form_submitted_ajax_handler');
-add_action('wp_ajax_nopriv_measuremate_form_submitted', 'measuremate_form_submitted_ajax_handler');
+add_action('wp_ajax_measgaau_form_submitted', 'measgaau_form_submitted_ajax_handler');
+add_action('wp_ajax_nopriv_measgaau_form_submitted', 'measgaau_form_submitted_ajax_handler');
 
-function measuremate_print_form_submitted_script()
+function measgaau_enqueue_form_submitted_script()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     if (!isset($options['form_submitted']) || !$options['form_submitted']) {
         return;
     }
-    ?>
-    <script>
-        jQuery(document).ready(function($) {
-    var ajaxurl = '<?php echo esc_url(admin_url('admin-ajax.php')); ?>';
-    var nonce = '<?php echo esc_js(wp_create_nonce('measuremate_form_submitted_nonce')); ?>';
+    
+    // Register and enqueue script
+    wp_register_script('measgaau-form-submitted', '', array('jquery'), '1.0', true);
+    wp_enqueue_script('measgaau-form-submitted');
+    
+    // Localize script
+    wp_localize_script('measgaau-form-submitted', 'measgaau_form_ajax', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('measgaau_form_submitted_nonce'),
+        'cookie_path' => COOKIEPATH,
+        'cookie_domain' => COOKIE_DOMAIN
+    ));
+    
+    // Add inline script
+    $inline_script = '
+jQuery(document).ready(function($) {
+    var ajaxurl = measgaau_form_ajax.ajax_url;
+    var nonce = measgaau_form_ajax.nonce;
     
     var lastClickedButton = null;
 
     // Track the clicked submit button
-    $(document).on('click', 'form button[type="submit"], form input[type="submit"]', function(e) {
+    $(document).on("click", "form button[type=\"submit\"], form input[type=\"submit\"]", function(e) {
         lastClickedButton = $(this);
     });
 
     function pushFormSubmittedData() {
-        var cookieValue = document.cookie.split('; ').find(row => row.startsWith('measuremate_form_submitted_data='));
+        var cookieValue = document.cookie.split("; ").find(row => row.startsWith("measgaau_form_submitted_data="));
         if (cookieValue) {
             try {
-                var data = JSON.parse(atob(decodeURIComponent(cookieValue.split('=')[1])));
-                console.log('Form Submitted:', data);
+                var data = JSON.parse(atob(decodeURIComponent(cookieValue.split("=")[1])));
+                console.log("Form Submitted:", data);
                 window.dataLayer = window.dataLayer || [];
                 window.dataLayer.push(data);
                 
-                document.cookie = "measuremate_form_submitted_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=<?php echo esc_js(COOKIEPATH); ?>; domain=<?php echo esc_js(COOKIE_DOMAIN); ?>";
+                document.cookie = "measgaau_form_submitted_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=" + measgaau_form_ajax.cookie_path + "; domain=" + measgaau_form_ajax.cookie_domain;
             } catch(e) {
-                console.error('Form submitted data error:', e);
+                console.error("Form submitted data error:", e);
             }
         }
     }
 
-    $(document).on('submit', 'form', function(e) {
+    $(document).on("submit", "form", function(e) {
         var $form = $(this);
 
-        if ($form.hasClass('woocommerce-cart-form') || $form.hasClass('checkout')) {
+        if ($form.hasClass("woocommerce-cart-form") || $form.hasClass("checkout")) {
             return;
         }
 
-        var formName = $form.attr('name') || '';
+        var formName = $form.attr("name") || "";
         if (!formName && lastClickedButton) {
-            formName = lastClickedButton.attr('name') || lastClickedButton.text() || '';
+            formName = lastClickedButton.attr("name") || lastClickedButton.text() || "";
         }
 
-        var formClass = $form.attr('class') || '';
+        var formClass = $form.attr("class") || "";
         if (!formClass && lastClickedButton) {
-            formClass = lastClickedButton.attr('class') || lastClickedButton.text() || '';
+            formClass = lastClickedButton.attr("class") || lastClickedButton.text() || "";
         }
 
         var formData = {
-            action: 'measuremate_form_submitted',
+            action: "measgaau_form_submitted",
             nonce: nonce,
-            form_id: $form.attr('id') || '',
+            form_id: $form.attr("id") || "",
             form_name: formName,
-            form_classes: $form.attr('class') || formClass,
-            form_action: $form.attr('action') || '',
-            form_method: $form.attr('method') || 'post',
-            page_title: document.title || '',
+            form_classes: $form.attr("class") || formClass,
+            form_action: $form.attr("action") || "",
+            form_method: $form.attr("method") || "post",
+            page_title: document.title || "",
             page_location: window.location.href,
             gtm_unique_event_id: Date.now()
         };
@@ -128,8 +141,9 @@ function measuremate_print_form_submitted_script()
 
     pushFormSubmittedData();
 });
-    </script>
-    <?php
+    ';
+    
+    wp_add_inline_script('measgaau-form-submitted', $inline_script);
 }
-add_action('wp_footer', 'measuremate_print_form_submitted_script');
+add_action('wp_footer', 'measgaau_enqueue_form_submitted_script');
 ?>

@@ -1,9 +1,9 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-function measuremate_view_promotion()
+function measgaau_view_promotion()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     $current_user = wp_get_current_user();
     $hashed_email = '';
     $email = '';
@@ -16,63 +16,64 @@ function measuremate_view_promotion()
         // Veronderstelt dat er een manier is om de getoonde promoties op te halen
         $promotions = []; // Hier moet een logica komen om promoties op te halen
 
-        foreach ($promotions as $promotion) {
-            $coupon = new WC_Coupon($promotion['coupon_code']);
-
-            $promotion_id = '';
-            $promotion_code = '';
-            $promotion_amount = '';
-
-            if ($coupon !== null && method_exists($coupon, 'get_id')) {
-                $promotion_id = $coupon->get_id();
-            }
-            if ($coupon !== null && method_exists($coupon, 'get_code')) {
-                $promotion_code = $coupon->get_code();
-            }
-            if ($coupon !== null && method_exists($coupon, 'get_amount')) {
-                $promotion_amount = $coupon->get_amount();
-            }
-            // Voeg logica toe om andere relevante informatie over de promotie te verzamelen indien nodig
-            $promotion_data = [
-                'item_id' => $promotion_id,
-                'item_name' => $promotion_code,
-                'coupon' => $promotion_code,
-                'discount' => $promotion_amount,
-            ];
-
-            $promotion_items[] = $promotion_data;
-        }
-
-?>
-
-        <?php
-        foreach ($promotions as $promotion) {
-            $promotion_id = $promotion['item_id'];
-            $promotion_id = $promotion['item_name'];
-            $promotion_code = $promotion['coupon'];
+        if (!empty($promotions)) {
             $promotion_items = [];
-        ?>
-            <script>
-                var_dump($promotion_id);
-                window.dataLayer = window.dataLayer || [];
-                dataLayer.push({
-                    'event': 'view_promotion',
-                    'ecommerce': {
-                        'promotion_id': '<?php echo esc_js($promotion_id); ?>',
-                        'promotion_name': '<?php echo esc_js($promotion_code); ?>',
-                        'items': <?php echo wp_json_encode($promotion_items); ?>
-                    },
-                    'user_data': {
-                        'email_hashed': '<?php echo esc_js($hashed_email); ?>',
-                        'email': '<?php echo esc_js($email); ?>'
-                    }
-                });
-            </script>
+            
+            foreach ($promotions as $promotion) {
+                $coupon = new WC_Coupon($promotion['coupon_code']);
 
-<?php
+                $promotion_id = '';
+                $promotion_code = '';
+                $promotion_amount = '';
+
+                if ($coupon !== null && method_exists($coupon, 'get_id')) {
+                    $promotion_id = $coupon->get_id();
+                }
+                if ($coupon !== null && method_exists($coupon, 'get_code')) {
+                    $promotion_code = $coupon->get_code();
+                }
+                if ($coupon !== null && method_exists($coupon, 'get_amount')) {
+                    $promotion_amount = $coupon->get_amount();
+                }
+                
+                $promotion_data = [
+                    'item_id' => $promotion_id,
+                    'item_name' => $promotion_code,
+                    'coupon' => $promotion_code,
+                    'discount' => $promotion_amount,
+                ];
+
+                $promotion_items[] = $promotion_data;
+            }
+            
+            // Register and enqueue script
+            wp_register_script('measgaau-view-promotion-tracking', '', array(), '1.0', true);
+            wp_enqueue_script('measgaau-view-promotion-tracking');
+            
+            // Prepare data for JavaScript
+            $view_promotion_data = array(
+                'event' => 'view_promotion',
+                'ecommerce' => array(
+                    'promotion_id' => isset($promotion_id) ? $promotion_id : '',
+                    'promotion_name' => isset($promotion_code) ? $promotion_code : '',
+                    'items' => $promotion_items
+                ),
+                'user_data' => array(
+                    'email_hashed' => $hashed_email,
+                    'email' => $email
+                )
+            );
+            
+            // Add inline script
+            $inline_script = '
+                window.dataLayer = window.dataLayer || [];
+                dataLayer.push(' . wp_json_encode($view_promotion_data) . ');
+            ';
+            
+            wp_add_inline_script('measgaau-view-promotion-tracking', $inline_script);
         }
     }
 }
 
-add_action('wp_footer', 'measuremate_view_promotion');
+add_action('wp_footer', 'measgaau_view_promotion');
 ?>

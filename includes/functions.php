@@ -1,25 +1,25 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function measuremate_hash_email($email)
+function measgaau_hash_email($email)
 {
     return hash('sha256', strtolower(trim($email)));
 }
 
-function measuremate_format_cart_items($cart){
+function measgaau_format_cart_items($cart){
     $items = array();
 
     foreach($cart->cart_contents as $cart_item){
         $product_id = $cart_item['product_id'];
         $product_quantity = $cart_item['quantity'];
-        $item = measuremate_format_item($product_id, $product_quantity);
+        $item = measgaau_format_item($product_id, $product_quantity);
         $items[] = $item;
     }
     
     return $items;
 }
 
-function measuremate_format_item($product_id, $product_quantity = 1){
+function measgaau_format_item($product_id, $product_quantity = 1){
     $product = wc_get_product( $product_id );
 
     $product_name = $product->get_name();

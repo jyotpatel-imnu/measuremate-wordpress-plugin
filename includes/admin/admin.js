@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const urlToggleField = document.getElementById("measuremate_url_toggle");
+  const urlToggleField = document.getElementById("measgaau_url_toggle");
   const enhancedTrackingCheckbox = document.getElementById(
-    "measuremate_enhanced_tracking_v2"
+    "measgaau_enhanced_tracking_v2"
   );
   const containerIdField = document.getElementById(
     "enhanced_tracking_v2_container_id"
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "enhanced_tracking_v2_section"
   );
   const submitButton = document.querySelector(
-    '#measuremate-options-form input[type="submit"], #measuremate-options-form button[type="submit"]'
+    '#measgaau-options-form input[type="submit"], #measgaau-options-form button[type="submit"]'
   ); // Specifieke selectie van de submitknop binnen het formulier
 
   // Foutmelding element aanmaken

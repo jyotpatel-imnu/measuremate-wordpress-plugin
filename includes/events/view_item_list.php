@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function measuremate_gtm_view_item_list()
+function measgaau_gtm_view_item_list()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     $current_user = wp_get_current_user();
     $hashed_email = '';
     $email = '';
@@ -19,7 +19,7 @@ function measuremate_gtm_view_item_list()
             foreach ($wp_query->posts as $post) {
                 $product = wc_get_product($post->ID);
                 if ($product) {
-                    $products[] = measuremate_format_item($product->get_id());
+                    $products[] = measgaau_format_item($product->get_id());
                 }
             }
             $item_list_id = 'default_list_id';
@@ -36,27 +36,34 @@ function measuremate_gtm_view_item_list()
                 $item_list_id = 'shop_page';
                 $item_list_name = 'Shop Page';
             }
-?>
-            <script>
+            
+            // Register and enqueue script
+            wp_register_script('measgaau-view-item-list-tracking', '', array(), '1.0', true);
+            wp_enqueue_script('measgaau-view-item-list-tracking');
+            
+            // Prepare data for JavaScript
+            $view_item_list_data = array(
+                'event' => 'view_item_list',
+                'ecommerce' => array(
+                    'item_list_id' => $item_list_id,
+                    'item_list_name' => $item_list_name,
+                    'items' => $products
+                ),
+                'user_data' => array(
+                    'email_hashed' => $hashed_email,
+                    'email' => $email
+                )
+            );
+            
+            // Add inline script
+            $inline_script = '
                 window.dataLayer = window.dataLayer || [];
-                dataLayer.push({
-                    'event': 'view_item_list',
-                    'ecommerce': {
-                        'item_list_id': '<?php echo esc_js($item_list_id); ?>',
-                        'item_list_name': '<?php echo esc_js($item_list_name); ?>',
-                        'items': <?php echo wp_json_encode($products); ?>
-                    },
-                    'user_data': {
-                        'email_hashed': '<?php echo esc_js($hashed_email); ?>',
-                        'email': '<?php echo esc_js($email); ?>'
-                    }
-                });
-            </script>
-
-<?php
+                dataLayer.push(' . wp_json_encode($view_item_list_data) . ');
+            ';
+            
+            wp_add_inline_script('measgaau-view-item-list-tracking', $inline_script);
         }
     }
 }
-add_action('wp_footer', 'measuremate_gtm_view_item_list');
-
+add_action('wp_footer', 'measgaau_gtm_view_item_list');
 ?>

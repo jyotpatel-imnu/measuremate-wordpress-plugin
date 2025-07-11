@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function measuremate_add_payment_info()
+function measgaau_add_payment_info()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
 
     $current_user = wp_get_current_user();
     $hashed_email = '';
@@ -11,43 +11,48 @@ function measuremate_add_payment_info()
         $hashed_email = hash('sha256', $current_user->user_email);
     }
 
-    // Controleer of we in de checkout zijn
+    // Check if we're in checkout
     if (is_checkout()) {
         $cart = WC()->cart;
         if ($cart) {
             $total_value = 0;
-            $items = measuremate_format_cart_items($cart);
-    
+            $items = measgaau_format_cart_items($cart);
     
             foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
                 $item_total = $cart_item['line_total'];
-                $total_value += $item_total; // Update de totale waarde
+                $total_value += $item_total;
             }
         }
     }
 
     if (isset($options['add_payment_info']) && $options['add_payment_info']) {
-?>
-        <script>
+        // Register and enqueue script
+        wp_register_script('measgaau-add-payment-info', '', array(), '1.0', true);
+        wp_enqueue_script('measgaau-add-payment-info');
+        
+        // Prepare data
+        $payment_data = array(
+            'event' => 'add_payment_info',
+            'ecommerce' => array(
+                'currency' => get_woocommerce_currency(),
+                'value' => $total_value,
+                'items' => $items
+            ),
+            'user_data' => array(
+                'email' => $current_user->user_email,
+                'email_hashed' => $hashed_email
+            )
+        );
+        
+        // Add inline script
+        $inline_script = '
             window.dataLayer = window.dataLayer || [];
-            dataLayer.push({
-                'event': 'add_payment_info',
-                'ecommerce': {
-                    'currency': '<?php echo esc_js(get_woocommerce_currency()); ?>',
-                    'value': <?php echo esc_js($total_value); ?>, // Total value of the order
-                    'items': <?php echo wp_json_encode($items); ?>
-                },
-                'user_data': {
-                    'email': '<?php echo esc_js($current_user->user_email); ?>',
-                    'email_hashed': '<?php echo esc_js($hashed_email); ?>'
-                }
-                // Add any additional GA4-specific variables here.
-            });
-        </script>
-
-<?php
+            dataLayer.push(' . wp_json_encode($payment_data) . ');
+        ';
+        
+        wp_add_inline_script('measgaau-add-payment-info', $inline_script);
     }
 }
 
-add_action('woocommerce_after_checkout_billing_form', 'measuremate_add_payment_info');
+add_action('woocommerce_after_checkout_billing_form', 'measgaau_add_payment_info');
 ?>

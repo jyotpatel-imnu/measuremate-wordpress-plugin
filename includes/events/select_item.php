@@ -1,9 +1,9 @@
 <?php
 if (! defined('ABSPATH')) exit;
 
-function measuremate_select_item_event()
+function measgaau_select_item_event()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     if (!isset($options['select_item']) || !$options['select_item']) {
         return;
     }
@@ -17,7 +17,7 @@ function measuremate_select_item_event()
 
     $current_user = wp_get_current_user();
     $email = $current_user->exists() ? $current_user->user_email : '';
-    $hashed_email = $email ? measuremate_hash_email($email) : '';
+    $hashed_email = $email ? measgaau_hash_email($email) : '';
 
     $categories = get_the_terms($product->get_id(), 'product_cat');
     $category_name = !empty($categories) ? $categories[0]->name : '';
@@ -38,7 +38,7 @@ function measuremate_select_item_event()
         $item_list_name = 'Shop Page';
     }
 
-    $item = measuremate_format_item($product->get_id());
+    $item = measgaau_format_item($product->get_id());
 
     $event_data = array(
         'event' => 'select_item',
@@ -54,30 +54,41 @@ function measuremate_select_item_event()
     );
 
     $cookie_value = base64_encode(wp_json_encode($event_data));
-    setcookie('measuremate_select_item_data', $cookie_value, time() + 300, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), false);
+    setcookie('measgaau_select_item_data', $cookie_value, time() + 300, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), false);
 }
-add_action('woocommerce_before_single_product', 'measuremate_select_item_event');
+add_action('woocommerce_before_single_product', 'measgaau_select_item_event');
 
-function measuremate_print_select_item_script()
+function measgaau_enqueue_select_item_script()
 {
-    $options = get_option('measuremate_options');
+    $options = get_option('measgaau_options');
     if (!isset($options['select_item']) || !$options['select_item']) {
         return;
     }
-    ?>
-    <script>
+    
+    // Register and enqueue script
+    wp_register_script('measgaau-select-item-tracking', '', array('jquery'), '1.0', true);
+    wp_enqueue_script('measgaau-select-item-tracking');
+    
+    // Localize script
+    wp_localize_script('measgaau-select-item-tracking', 'measgaau_select_item', array(
+        'cookie_path' => COOKIEPATH,
+        'cookie_domain' => COOKIE_DOMAIN
+    ));
+    
+    // Add inline script
+    $inline_script = '
         jQuery(document).ready(function($) {
             function pushSelectItemData() {
-                var cookieValue = document.cookie.split('; ').find(row => row.startsWith('measuremate_select_item_data='));
+                var cookieValue = document.cookie.split("; ").find(row => row.startsWith("measgaau_select_item_data="));
                 if (cookieValue) {
                     try {
-                        var data = JSON.parse(atob(decodeURIComponent(cookieValue.split('=')[1])));
+                        var data = JSON.parse(atob(decodeURIComponent(cookieValue.split("=")[1])));
                         window.dataLayer = window.dataLayer || [];
                         window.dataLayer.push(data);
                         // Delete cookie after pushing data
-                        document.cookie = "measuremate_select_item_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=<?php echo esc_js(COOKIEPATH); ?>; domain=<?php echo esc_js(COOKIE_DOMAIN); ?>";
+                        document.cookie = "measgaau_select_item_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=" + measgaau_select_item.cookie_path + "; domain=" + measgaau_select_item.cookie_domain;
                     } catch (e) {
-                        console.error('Select item data error:', e);
+                        console.error("Select item data error:", e);
                     }
                 }
             }
@@ -86,12 +97,13 @@ function measuremate_print_select_item_script()
             pushSelectItemData();
 
             // Check after updates (for potential AJAX calls)
-            $(document.body).on('updated_wc_div', function() {
+            $(document.body).on("updated_wc_div", function() {
                 setTimeout(pushSelectItemData, 500);
             });
         });
-    </script>
-    <?php
+    ';
+    
+    wp_add_inline_script('measgaau-select-item-tracking', $inline_script);
 }
-add_action('wp_footer', 'measuremate_print_select_item_script');
+add_action('wp_footer', 'measgaau_enqueue_select_item_script');
 ?>
