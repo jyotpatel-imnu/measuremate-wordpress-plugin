@@ -25,22 +25,26 @@ Features:
 2. Activate the plugin through the 'Plugins' screen in WordPress.
 3. Use the Measuremate screen in the menu bar to configure the plugin.
 4. Enter your GTM code to link your Google Tag Manager account.
+5. Select the required events, then save changes.
+6. Go to the https://app.themeasuremate.com & go to Tracking & Pixel Setup > Woocommerce Tracking - Push required tags to GTM.
+7. Once tags have been pushed to GTM, kindly publish the GTM to start tracking.
 
 == Frequently Asked Questions ==
 
 = Do I need a Google Tag Manager account to use this plugin? =
 
-Yes, you need to have a GoogleTag Manager account and a GTM code to integrate the plugin with GA4.
+Yes, you need to have a GoogleTag Manager account and a GTM Container ID (GTM-XXXXXX) to integrate the plugin with GA4.
 
 = Do I need a Measuremate account to use this plugin? =
 
-No, its not required to have a Measuremate account. We recommend it to get the most out of your tracking.
+Yes, you are required to have a Measuremate account if you plan to also configure your Google Tag Manager. If you only want to push dataLayer, you don't require the Measuremate account.
 
 = Is this plugin compliant with privacy regulations like GDPR? =
 
-The plugin adheres to privacy regulations by providing server-side tracking, which enhances data privacy and compliance.
+The plugin adheres to privacy regulations by providing server-side/client-side tracking, which enhances data privacy and compliance.
 
 == Third-Party Service Dependencies ==
+
 = Google Tag Manager =
 This Measuremate - Tracking & Setup plugin integrates with Google Tag Manager (GTM) for server-side tracking. This integration allows us to send data directly to GTM servers without requiring client-side scripting. This approach enhances data accuracy and privacy compliance.
 
@@ -59,36 +63,6 @@ Please be aware that by using this Measuremate - Tracking & Setup plugin, data w
 We advise all users to review Google Tag Manager's Terms of Service and Privacy Policy to ensure compliance with data protection and privacy laws applicable to your use case. It is your responsibility to adhere to any legal requirements pertaining to data collection and processing activities conducted through GTM.
 
 == Changelog ==
-
-= 1.0.5 =
-- Removed unnecessary navigation tabs in admin page 
-
-= 1.0.4 =
-- Improved script robustness in the remove_from_cart event.
-
-= 1.0.3 =
-- Added Measuremate Logo to the admins include files.
-- Changed all function names to "measuremate_".
-- Changed versions in documents.
-- Added measuremate_format_item & measuremate_format_cart_items for consistency
-
-= 1.0.2 =
-- Added categories to ad_to_cart AJAX event.
-
-= 1.0.1 =
-- Update licenses to GPLv2
-- Included Measuremate logo, limiting external dependencies
-- Updated required version
-- Replaced short php codes to full php codes.
-- Documented use of Google Tag Manager
-- Properly escaped all echos
-- Added prefix to all functions "measuremate"
-- Made all files non-directly accessible
-
-= 1.0.0 =
-- Initial release.
-
-== Upgrade Notice ==
 
 = 1.0.0 =
 Initial release. Please backup your website before installing.
