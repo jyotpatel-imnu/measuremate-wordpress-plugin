@@ -141,6 +141,11 @@ function measgaau_enqueue_admin_styles($hook) {
             margin: 0;
             cursor: pointer;
         }
+        /* Added this rule for disabled events */
+        .events-table td.disabled-event label {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
         .events-table input[type="checkbox"] {
             margin-right: 8px;
@@ -252,6 +257,7 @@ function measgaau_get_defaults() {
         'page_view'=> 1,
         'clicked'=> 1,
         'form_submitted'=> 1,
+        'form_start' => 1,
         'input_blurred'=> 1,
         'input_changed'=> 1,
         'input_focused'=> 1,
@@ -308,7 +314,7 @@ function measgaau_options_sanitize($input) {
         'add_payment_info', 'add_shipping_info', 'remove_from_cart',
         'select_item', 'view_promotion', 'select_promotion',
         'page_view', 'clicked', 'form_submitted', 'input_blurred',
-        'input_changed', 'input_focused'
+        'form_start', 'input_changed', 'input_focused'
     );
     
     // Sanitize checkboxes
@@ -356,7 +362,31 @@ function measgaau_url_cb($args) {
 }
 
 function measgaau_section_callback($args) {
+
+    $is_woocommerce_active = function_exists('measuremate_is_woocommerce_active') && measuremate_is_woocommerce_active();
+    
     echo ( '<p class="description">✅ Please Enable/Disable the required DataLayer Events from the list below. 👉 Click SAVE when finished.</p>' );
+    
+    if (!$is_woocommerce_active) {
+        echo '<p class="description" style="font-weight: bold; color: #d63638;">WooCommerce is not active. WooCommerce-specific events have been disabled.</p>';
+    }
+    
+    $woo_events = [
+        'view_item',
+        'add_to_cart',
+        'purchase',
+        'view_cart',
+        'view_item_list',
+        'begin_checkout',
+        'refund',
+        'add_to_wishlist',
+        'add_payment_info',
+        'add_shipping_info',
+        'remove_from_cart',
+        'select_item',
+        'view_promotion',
+        'select_promotion',
+    ];
     
     // Start the events table
     $options = get_option('measgaau_options');
@@ -378,6 +408,7 @@ function measgaau_section_callback($args) {
         'page_view' => 'Page View',
         'clicked' => 'Clicked',
         'form_submitted' => 'Form Submitted',
+        'form_start' => 'Form Start',
         'input_blurred' => 'Input Blurred',
         'input_changed' => 'Input Changed',
         'input_focused' => 'Input Focused',
@@ -391,11 +422,19 @@ function measgaau_section_callback($args) {
             echo '<tr>';
         }
         
+        // Determine if the checkbox should be disabled
+        $disabled = '';
+        $disabled_class = '';
+        if (in_array($event_key, $woo_events) && !$is_woocommerce_active) {
+            $disabled = 'disabled="disabled"';
+            $disabled_class = 'disabled-event';
+        }
+        
         $checked = isset($options[$event_key]) ? checked($options[$event_key], 1, false) : '';
         
-        echo '<td>';
+        echo '<td class="' . esc_attr($disabled_class) . '">'; // Add disabled class to the cell
         echo '<label for="measgaau_field_' . esc_attr($event_key) . '">';
-        echo '<input name="measgaau_options[' . esc_attr($event_key) . ']" type="checkbox" id="measgaau_field_' . esc_attr($event_key) . '" value="1" ' . esc_attr($checked) . '>';
+        echo '<input name="measgaau_options[' . esc_attr($event_key) . ']" type="checkbox" id="measgaau_field_' . esc_attr($event_key) . '" value="1" ' . esc_attr($checked) . ' ' . $disabled . '>'; // Add disabled attribute
         echo esc_html($event_label);
         echo '</label>';
         echo '</td>';
@@ -506,6 +545,7 @@ function measgaau_settings_init() {
         'page_view',
         'clicked',
         'form_submitted',
+        'form_start',
         'input_blurred',
         'input_changed',
         'input_focused',

@@ -34,23 +34,48 @@ require_once plugin_dir_path(__FILE__) . 'includes/inject_gtm.php';
 // load functions
 require_once plugin_dir_path(__FILE__) . 'includes/functions.php';
 
-// load events
-require_once plugin_dir_path(__FILE__) . 'includes/events/view_item.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/add_to_cart.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/view_cart.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/begin_checkout.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/purchase.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/view_item_list.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/refund.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/add_to_wishlist.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/add_shipping_info.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/remove_from_cart.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/select_item.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/view_promotion.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/select_promotion.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/page_view.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/clicked.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/form_submitted.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/input_blurred.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/input_changed.php';
-require_once plugin_dir_path(__FILE__) . 'includes/events/input_focused.php';
+add_action( 'plugins_loaded', function() {
+
+    if ( function_exists( 'measuremate_is_woocommerce_active' ) && measuremate_is_woocommerce_active() ) {
+
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/view_item.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/add_to_cart.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/view_cart.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/begin_checkout.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/purchase.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/view_item_list.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/refund.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/add_to_wishlist.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/add_shipping_info.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/remove_from_cart.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/select_item.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/view_promotion.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/select_promotion.php';
+
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/page_view.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/clicked.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/form_start.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/form_submitted.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/input_blurred.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/input_changed.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/input_focused.php';
+
+        if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+            error_log( 'Measuremate: WooCommerce mode active' );
+        }
+
+    } else {
+
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/page_view.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/clicked.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/form_start.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/form_submitted.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/input_blurred.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/input_changed.php';
+        require_once plugin_dir_path( __FILE__ ) . 'includes/events/input_focused.php';
+
+        if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+            error_log( 'Measuremate: Standard WordPress mode active' );
+        }
+    }
+});

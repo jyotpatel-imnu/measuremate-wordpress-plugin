@@ -1,6 +1,14 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+// Check if WooCommerce is active
+if ( ! function_exists( 'measuremate_is_woocommerce_active' ) ) {
+    function measuremate_is_woocommerce_active() {
+        return class_exists( 'WooCommerce' );
+    }
+}
+
+
 function measgaau_hash_email($email)
 {
     return hash('sha256', strtolower(trim($email)));
