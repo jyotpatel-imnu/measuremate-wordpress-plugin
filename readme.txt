@@ -1,9 +1,9 @@
 === Measuremate – GA4 Audit, Track, Reports & Insights ===
-Contributors: JubatusAI Labs Pvt Ltd., Taggrs
-Tags: woocommerce, google analytics, ga4, e-commerce analytics, enhanced conversions
+Contributors: jyotpatelimnu
+Tags: ga4, gtm, google analytics, tracking, e-commerce
 Requires at least: 4.5
 Tested up to: 6.8
-Stable tag: 1.1.6
+Stable tag: 1.1.0
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -40,6 +40,10 @@ No coding is needed. Everything is configurable from the Woocomerce/WordPress ad
 * Initial stable release
 * Measuremate - Your Personal GA4 Expert
 
+= 1.1.0 =
+* Fixed Critical Issues
+* Fixed issues with wordpress website - plugin does not break your website when installing on wordpress websites that does not support woocommerce.
+
 == External Services ==
 
 This plugin integrates with the Measuremate Web App to provide enhanced GA4 insights and support within the WordPress admin interface.
@@ -63,3 +67,15 @@ This plugin integrates with the Measuremate Web App to provide enhanced GA4 insi
 - **Provider policies**:
   - **Privacy Policy**: https://policies.google.com/privacy  
   - **Terms of Service**: https://marketingplatform.google.com/about/analytics/tag-manager/use-policy/
+
+== Upgrade Notice ==
+Nothing here.
+
+== Screenshots ==
+1. **Measuremate** - is your personal GA4, GTM & BigQuery Expert. It lets you handle everything from event tagging and scheduled reports to AI-based alerts and actionable insights with zero code or spreadsheet wrangling.
+2. **1-tool to rule them all** - Manage your entire analytics stack in one place - GA4, GTM, and BigQuery.
+3. **Tracking & Pixel Setup** - Effortlessly deploy tracking pixels using prebuilt templates for every major platform. (Including Shopify, Woo-commerce)
+4. **Measurement Plan Builder** - Build a full tracking strategy with AI-recommended events and no guesswork. Automate GA4, GTM Configuration & Event Validations. One-click setup for product views, cart, checkout, purchase and 17+ Woo-commerce/Shopify events.
+5. **Scheduled Reports** - Schedule automated reports to your favorite tools and stay ahead of KPIs. Bring your data to Figma, Slack, WhatsApp, Email, Sheets, XLS from GA4 or BigQuery.
+6. **GA4 Co-pilot** - Talk to your GA4 data without ever struggling to get the reports.
+7. **Actionable Insights** - Generate clear insights like funnels and attribution paths, exit paths with zero setup / BigQuery knowledge.

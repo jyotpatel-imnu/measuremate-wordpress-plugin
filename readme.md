@@ -66,3 +66,6 @@ We advise all users to review Google Tag Manager's Terms of Service and Privacy 
 
 = 1.0.0 =
 Initial release. Please backup your website before installing.
+
+= 1.1.0 =
+Fixed issues with wordpress website - plugin does not break your website when installing on wordpress websites that does not support woocommerce.
